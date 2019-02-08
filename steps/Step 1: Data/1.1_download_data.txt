@@ -7,7 +7,8 @@ Data used in this project is from Imagenet Challenge
 	- Extract the file 
 	- copy ILSVRC2014_devkit/data/ILSVRC2014_clsloc_validation_ground_truth.txt to data/
 	- copy ILSVRC2014_devkit/data/meta_clsloc.mat to data/
-3. meta_clsloc.mat contains a list of all the different synsets and the corresponding description of the synsets
+3. Download alexnet_weights.h5 from http://files.heuritech.com/weights/alexnet_weights.h5 and copy it to data/weights/ folder
+4. meta_clsloc.mat contains a list of all the different synsets and the corresponding description of the synsets
 	- Randomly a few different synsets (from the first 1000 entries) and make a note of its corresponding ILSVRC2014_ID
 		- For example: I picked four different synsets that can be grouped together into animate class
 			- 3 - Siberian Husky

@@ -15,8 +15,9 @@ from keras import backend as K
 from keras.engine import Layer
 from keras.layers.core import Lambda
 import pickle
-from keract import display_activations
 from keras.utils.vis_utils import plot_model
+import matplotlib
+import matplotlib.pyplot as plt
 
 
 from keras import backend as K
@@ -216,7 +217,7 @@ from os.path import join
 
 from scipy.io import loadmat
 
-meta_clsloc_file = join(dirname(__file__), 'data', 'meta_clsloc.mat')
+meta_clsloc_file = join(dirname(__file__), '../../data', 'meta_clsloc.mat')
 
 synsets = loadmat(meta_clsloc_file)['synsets'][0]
 
@@ -260,8 +261,10 @@ with open('../../data/ILSVRC2014_clsloc_validation_ground_truth.txt') as f:
 		line_num += 1
 
 out_r = []
-for p in ['animate']:
-	url_path = '../../data/img_test/'+p+'/'
+p_num = 1
+for p in ['animate','inanimate']:
+	
+	url_path = '../../data/'+p+'/'
 
 	true_wids = []
 	im_list = []
@@ -275,7 +278,7 @@ for p in ['animate']:
 
 
 	sgd = SGD(lr=0.1, decay=1e-6, momentum=0.9, nesterov=True)
-	model = AlexNet(weights_path="weights/alexnet_weights.h5")
+	model = AlexNet(weights_path="../../data/weights/alexnet_weights.h5")
 	model.compile(optimizer=sgd, loss='mse')
 	#print model.summary()
 	#plot_model(model, to_file='model_plot.png', show_shapes=True, show_layer_names=True)
@@ -334,22 +337,16 @@ for p in ['animate']:
 	    i += 1 
 	print data.shape
 	out_r.append(data)
-	'''
-		with open('./alex/c_'+layer.name+'.pkl', 'w') as f:
-	    		pickle.dump([layer.name, weights, activations], f)
-
-
-	#display_activations(result)
-	'''
+	plt.figure(p_num)
+	plt.hist(data,bins='auto',color = 'blue')
+	plt.title('Histogram of '+p+ ' class')
+	plt.savefig('../../results/histograms/'+p+'_hist.png')
+	p_num += 1
 with open('../../data/data.pkl', 'w') as f:
-	 pickle.dump([out_r[0],out_r[1]], f)
+	 pickle.dump(out_r, f)
 
 
-import matplotlib
-import matplotlib.pyplot as plt
-plt.figure(1)
-num_bins = 20
-n, bins, patches = plt.hist(out_r[0], num_bins, facecolor='blue', alpha=0.5)
-plt.title('Histogram of Animate Class')
+
+
 plt.show() 
 
