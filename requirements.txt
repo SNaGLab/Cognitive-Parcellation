@@ -4,7 +4,7 @@
 _tflow_select=2.3.0=mkl
 absl-py=0.6.1=py27_0
 alabaster=0.7.12=py27_0
-anaconda=2018.12=py27_0
+anaconda=custom=py27h4a00acb_0
 anaconda-client=1.7.2=py27_0
 anaconda-project=0.8.2=py27_0
 asn1crypto=0.24.0=py27_0
@@ -34,7 +34,7 @@ boto=2.49.0=py27_0
 bottleneck=1.2.1=py27h035aef0_1
 bzip2=1.0.6=h14c3975_5
 c-ares=1.15.0=h7b6447c_1
-ca-certificates=2018.03.07=0
+ca-certificates=2019.1.23=0
 cairo=1.14.12=h8948797_3
 cdecimal=2.3=py27h14c3975_3
 certifi=2018.11.29=py27_0
@@ -47,6 +47,7 @@ colorama=0.4.1=py27_0
 configparser=3.5.0=py27h5117587_0
 contextlib2=0.5.5=py27hbf4c468_0
 cryptography=2.4.2=py27h1ba5d50_0
+cryptography-vectors=2.3.1=py27_1000
 curl=7.63.0=hbc83047_1000
 cycler=0.10.0=py27hc7354d3_0
 cython=0.29.2=py27he6710b0_0
@@ -134,6 +135,7 @@ libffi=3.2.1=hd88cf55_4
 libgcc-ng=8.2.0=hdf63c60_1
 libgfortran-ng=7.3.0=hdf63c60_0
 libgpuarray=0.7.6=h14c3975_0
+libiconv=1.15=h470a237_4
 liblief=0.9.0=h7725739_1
 libpng=1.6.35=hbc83047_0
 libprotobuf=3.6.1=hd408876_0
@@ -218,7 +220,7 @@ pycairo=1.18.0=py27h2a1e443_0
 pycodestyle=2.4.0=py27_0
 pycosat=0.6.3=py27h14c3975_0
 pycparser=2.19=py27_0
-pycrypto=2.6.1=py27h14c3975_9
+pycryptodome=3.7.1=py27h16a7912_0
 pycurl=7.43.0.2=py27h1ba5d50_0
 pyflakes=2.0.0=py27_0
 pygments=2.3.1=py27_0

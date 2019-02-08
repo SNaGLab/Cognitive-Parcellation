@@ -340,9 +340,9 @@ for p in ['animate','inanimate']:
 	plt.figure(p_num)
 	plt.hist(data,bins='auto',color = 'blue')
 	plt.title('Histogram of '+p+ ' class')
-	plt.savefig('../../results/histograms/'+p+'_hist.png')
+	plt.savefig('../../results/histograms/'+p+'_hist_alex.png')
 	p_num += 1
-with open('../../data/data.pkl', 'w') as f:
+with open('../../data/data_alex.pkl', 'w') as f:
 	 pickle.dump(out_r, f)
 
 
