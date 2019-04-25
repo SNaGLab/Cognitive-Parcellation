@@ -1,11 +1,15 @@
+
+ #Imports
 import numpy as np
 import os
+import sys
 os.environ['KERAS_BACKEND'] = 'theano'
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import keras
 from keras.models import Sequential
-from keras.layers import Dense, Activation, Dropout, Flatten,Conv2D, MaxPooling2D, Input, ZeroPadding2D,merge
+from keras.layers import Dense, Activation, Dropout, Flatten,Conv2D, MaxPooling2D, Input, ZeroPadding2D,merge,merge,Flatten
 from keras.layers.normalization import BatchNormalization
+from keras.layers.convolutional import Convolution2D, MaxPooling2D, ZeroPadding2D
 from keras.models import Model
 from keras.utils.layer_utils import convert_all_kernels_in_model
 from keras.optimizers import SGD
@@ -14,18 +18,23 @@ from scipy.misc import imresize
 from keras import backend as K
 from keras.engine import Layer
 from keras.layers.core import Lambda
-import pickle
+import cPickle as pickle
 from keras.utils.vis_utils import plot_model
 import matplotlib
 import matplotlib.pyplot as plt
+from keras.layers.core import  Lambda
+from keras.regularizers import l2
+from os.path import dirname
+from os.path import join
+from scipy.io import loadmat
 
-
-from keras import backend as K
+#Code snippet needed to read activation values from each layer of the pre-trained artificial neural networks
 def get_activations(model, layer, X_batch):
     get_activations = K.function([model.layers[0].input, K.learning_phase()], [model.layers[layer].output,])
     activations = get_activations([X_batch,0])
     return activations
 
+#Function to pre-process the input image to ensure uniform size and color
 def preprocess_image_batch(image_paths, img_size=None, crop_size=None, color_mode='rgb', out=None):
     """
     Consistent preprocessing of images batches
@@ -72,21 +81,13 @@ def preprocess_image_batch(image_paths, img_size=None, crop_size=None, color_mod
     else:
         return img_batch
 
-from keras.layers.core import  Lambda
-from keras import backend as K
+#Helper function to normalization across channels
 K.set_image_dim_ordering('th')
-from keras.models import Model
-from keras.layers import Input, merge, Dense, Dropout, Activation, Flatten
-from keras.layers.convolutional import Convolution2D, MaxPooling2D, ZeroPadding2D
-from keras.regularizers import l2
-
 def crosschannelnormalization(alpha=1e-4, k=2, beta=0.75, n=5, **kwargs):
     """
     This is the function used for cross channel normalization in the original
     Alexnet
     """
-
-
     def f(X):
         if K.image_dim_ordering()=='tf':
             b, r, c, ch = X.get_shape()
@@ -111,7 +112,7 @@ def crosschannelnormalization(alpha=1e-4, k=2, beta=0.75, n=5, **kwargs):
 
     return Lambda(f, output_shape=lambda input_shape: input_shape, **kwargs)
 
-
+#Helper Function to split tensor
 def splittensor(axis=1, ratio_split=1, id_split=0, **kwargs):
     def f(X):
         div = K.shape(X)[axis] // ratio_split
@@ -136,7 +137,7 @@ def splittensor(axis=1, ratio_split=1, id_split=0, **kwargs):
 
     return Lambda(f, output_shape=lambda input_shape: g(input_shape), **kwargs)
 
-
+#Alexnet layer architecture class
 def AlexNet(img_shape=(3, 227, 227), n_classes=1000, l2_reg=0.,weights_path=None):
 
     dim_ordering = K.image_dim_ordering()
@@ -212,17 +213,11 @@ def AlexNet(img_shape=(3, 227, 227), n_classes=1000, l2_reg=0.,weights_path=None
     return model
 
 
-from os.path import dirname
-from os.path import join
 
-from scipy.io import loadmat
-
+#Load the details of all the 1000 classes and the function to conver the synset id to words{
 meta_clsloc_file = join(dirname(__file__), '../../data', 'meta_clsloc.mat')
-
 synsets = loadmat(meta_clsloc_file)['synsets'][0]
-
 synsets_imagenet_sorted = sorted([(int(s[0]), str(s[1][0])) for s in synsets[:1000]],key=lambda v: v[1])
-
 corr = {}
 for j in range(1000):
     corr[synsets_imagenet_sorted[j][0]] = j
@@ -234,16 +229,17 @@ for j in range(1, 1001):
 def id_to_words(id_):
     return synsets[corr_inv[id_] - 1][2][0]
 
-
 def pprint_output(out, n_max_synsets=10):
     wids = []
     best_ids = out.argsort()[::-1][:10]
     for u in best_ids:
 	wids.append(str(synsets[corr_inv[u] - 1][1][0]))
-        #print('%.2f' % round(100 * out[u], 2) + ' : ' + id_to_words(u)+' '+ str(synsets[corr_inv[u] - 1][1][0]))
+        print('%.2f' % round(100 * out[u], 2) + ' : ' + id_to_words(u)+' '+ str(synsets[corr_inv[u] - 1][1][0]))
     return wids
 
+#}
 
+#Code snippet to load the ground truth labels to measure the performance{
 truth = {}
 with open('../../data/ILSVRC2014_clsloc_validation_ground_truth.txt') as f:
 	line_num = 1
@@ -259,94 +255,106 @@ with open('../../data/ILSVRC2014_clsloc_validation_ground_truth.txt') as f:
 		else:
 			print '##########', ind_
 		line_num += 1
+#}
+
+# Loading the folder to be procesed from command line{
+p = sys.argv[1]
+tmp = p.replace('/','_')
+print tmp
+
 
 out_r = []
 p_num = 1
-for p in ['animate','inanimate']:
-	
-	url_path = '../../data/'+p+'/'
+url_path = '../../data/'+p+'/'
+#}
 
-	true_wids = []
-	im_list = []
-	for i in os.listdir(url_path):
+
+# Prepare the image list and pre-process them{
+true_wids = []
+im_list = []
+for i in os.listdir(url_path):
+	if not i.startswith('~') and not i.startswith('.'):
+		print i
 		temp = i.split('.')[0].split('_')[2]
 		true_wids.append(truth[int(temp)][1])
 		im_list.append(url_path+i)
 
+im = preprocess_image_batch(im_list,img_size=(256,256), crop_size=(227,227), color_mode="rgb")
+#}
 
-	im = preprocess_image_batch(im_list,img_size=(256,256), crop_size=(227,227), color_mode="rgb")
-
-
-	sgd = SGD(lr=0.1, decay=1e-6, momentum=0.9, nesterov=True)
-	model = AlexNet(weights_path="../../data/weights/alexnet_weights.h5")
-	model.compile(optimizer=sgd, loss='mse')
-	#print model.summary()
-	#plot_model(model, to_file='model_plot.png', show_shapes=True, show_layer_names=True)
-	out = model.predict(im,batch_size=64)
-
-	def top5accuracy(true, predicted):
-		assert len(true) == len(predicted)
-		result = []	
+#Function to predict the top 5 accuracy
+def top5accuracy(true, predicted):
+	assert len(true) == len(predicted)
+	result = []	
+	flag  = 0
+	for i in range(len(true)): 	
 		flag  = 0
-		for i in range(len(true)): 	
-			flag  = 0
-			temp = true[i]
-			for j in predicted[i]:
-				if j == temp:
-					flag = 1
-					break
-			if flag == 1:
-				result.append(1)
-			else:
-				result.append(0)
-		counter = 0.		
-		for i in result:
-			if i == 1:
-			 counter += 1.
-		error = 1.0 - counter/float(len(result))
-		print len(np.where(np.asarray(result) == 1)[0])
-		return error
-	
+		temp = true[i]
+		for j in predicted[i]:
+			if j == temp:
+				flag = 1
+				break
+		if flag == 1:
+			result.append(1)
+		else:
+			result.append(0)
+	counter = 0.		
+	for i in result:
+		if i == 1:
+		 counter += 1.
+	error = 1.0 - counter/float(len(result))
+	print len(np.where(np.asarray(result) == 1)[0])
+	return error
 
+# Model parmeters and running the model from the loaded weights{
+sgd = SGD(lr=0.1, decay=1e-6, momentum=0.9, nesterov=True)
+model = AlexNet(weights_path="../../data/weights/alexnet_weights.h5")
+model.compile(optimizer=sgd, loss='mse')
+#print model.summary()
+#plot_model(model, to_file='model_plot.png', show_shapes=True, show_layer_names=True)
+out = model.predict(im,batch_size=64)
 
+predicted_wids = []
+for i in range(len(im_list)):
+	print im_list[i], pprint_output(out[i]), true_wids[i]
+	predicted_wids.append(pprint_output(out[i]))
 
+print len(true_wids), len(predicted_wids), len(im_list)
+print top5accuracy(true_wids, predicted_wids)
 
-	predicted_wids = []
-	for i in range(len(im_list)):
-		#print im_list[i], pprint_output(out[i]), true_wids[i]
-		predicted_wids.append(pprint_output(out[i]))
+#}
 
-	print len(true_wids), len(predicted_wids), len(im_list)
-	print top5accuracy(true_wids, predicted_wids)
+# Code snippet to get the activation values and save it into teh variable{
+data = np.array([])
+i = 0
+result ={}
+for layer in model.layers:
+    weights = layer.get_weights()
+    if len(weights) > 0:
+	activations = get_activations(model,i,im)
+	if result.get(layer.name, None) is None:
+		result[layer.name] = activations[0]
 
+	temp = np.mean(activations[0], axis=0).ravel()	
+    	print layer.name,len(weights),len(activations), activations[0].shape, np.mean(activations[0], axis=0).shape, temp.shape
+	data = np.append(data, temp)
 
-	data = np.array([])
-	i = 0
-	result ={}
-	for layer in model.layers:
-	    weights = layer.get_weights()
-	    if len(weights) > 0:
-		activations = get_activations(model,i,im)
-		if result.get(layer.name, None) is None:
-			result[layer.name] = activations[0]
-	
-		temp = np.mean(activations[0], axis=0).ravel()	
-	    	print layer.name,len(weights),len(activations), activations[0].shape, np.mean(activations[0], axis=0).shape, temp.shape
-		data = np.append(data, temp)
+    i += 1 
+print data.shape
+out_r.append(data)
+#}
 
-	    i += 1 
-	print data.shape
-	out_r.append(data)
-	plt.figure(p_num)
-	plt.hist(data,bins='auto',color = 'blue')
-	plt.title('Histogram of '+p+ ' class')
-	plt.savefig('../../results/histograms/'+p+'_hist_alex.png')
-	p_num += 1
-with open('../../data/data_alex.pkl', 'w') as f:
+#Code Snippet for any plots if needed{
+'''
+plt.figure(p_num)
+plt.hist(data,bins='auto',color = 'blue')
+plt.title('Histogram of '+p+ ' class')
+#plt.savefig('../../results/histograms/'+p+'_hist_alex.png')
+p_num += 1
+
+tmp = p.replace('/','_')
+with open('../../data/data_alex_'+tmp+'.pkl', 'wb') as f:
 	 pickle.dump(out_r, f)
-
-
-
-
-plt.show() 
-
+#plt.show() 
+'''
+#}
