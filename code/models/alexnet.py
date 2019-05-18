@@ -345,16 +345,15 @@ out_r.append(data)
 #}
 
 #Code Snippet for any plots if needed{
-'''
 plt.figure(p_num)
 plt.hist(data,bins='auto',color = 'blue')
 plt.title('Histogram of '+p+ ' class')
-#plt.savefig('../../results/histograms/'+p+'_hist_alex.png')
+plt.savefig('../../results/histograms/'+p+'_hist_alex.png')
 p_num += 1
 
 tmp = p.replace('/','_')
 with open('../../data/data_alex_'+tmp+'.pkl', 'wb') as f:
 	 pickle.dump(out_r, f)
 #plt.show() 
-'''
+
 #}
