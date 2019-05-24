@@ -7,10 +7,13 @@ path = '../../data/weights/alexnet_weights.h5'
 f = h5py.File(path, 'r')
 
 # List all groups
-print("Keys: %s" % f.keys())
-a_group_key = list(f.keys())[0]
+#print("Keys: %s" % f.keys())
 
-# Get the data
-data = f[a_group_key].values()
-print data[0], data[1]
+for key in f.keys():
+	# Get the data
+	print key
+	for key2 in f[key].keys():
+		print f[key][key2]
+
+
 f.close()

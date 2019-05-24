@@ -1,5 +1,5 @@
-
- #Imports
+#To hide warnings export PYTHONWARNINGS="ignore"
+#Imports
 import numpy as np
 import os
 import sys
@@ -7,7 +7,7 @@ os.environ['KERAS_BACKEND'] = 'theano'
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import keras
 from keras.models import Sequential
-from keras.layers import Dense, Activation, Dropout, Flatten,Conv2D, MaxPooling2D, Input, ZeroPadding2D,merge,merge,Flatten
+from keras.layers import Dense, Activation, Dropout, Flatten,Conv2D, MaxPooling2D, Input, ZeroPadding2D,merge,Lambda,Flatten
 from keras.layers.normalization import BatchNormalization
 from keras.layers.convolutional import Convolution2D, MaxPooling2D, ZeroPadding2D
 from keras.models import Model
@@ -52,7 +52,7 @@ def preprocess_image_batch(image_paths, img_size=None, crop_size=None, color_mod
 	#print img.shape
         if img_size:
             img = imresize(img, img_size)
-	
+
         img = img.astype('float32')
         # We normalize the colors (in RGB space) with the empirical means on the training set
         img[:, :, 0] -= 123.68
@@ -110,6 +110,7 @@ def crosschannelnormalization(alpha=1e-4, k=2, beta=0.75, n=5, **kwargs):
         scale = scale ** beta
         return X / scale
 
+
     return Lambda(f, output_shape=lambda input_shape: input_shape, **kwargs)
 
 #Helper Function to split tensor
@@ -127,13 +128,13 @@ def splittensor(axis=1, ratio_split=1, id_split=0, **kwargs):
             output = X[:, :, :, id_split*div:(id_split+1)*div]
         else:
             raise ValueError("This axis is not possible")
-
         return output
 
     def g(input_shape):
         output_shape = list(input_shape)
         output_shape[axis] = output_shape[axis] // ratio_split
         return tuple(output_shape)
+
 
     return Lambda(f, output_shape=lambda input_shape: g(input_shape), **kwargs)
 
@@ -158,7 +159,11 @@ def AlexNet(img_shape=(3, 227, 227), n_classes=1000, l2_reg=0.,weights_path=None
     conv_1 = Convolution2D(96, 11, 11, subsample=(4, 4), activation='relu',
                            name='conv_1', W_regularizer=l2(l2_reg))(inputs)
 
-    conv_2 = MaxPooling2D((3, 3), strides=(2, 2))(conv_1)
+    mask_temp = np.ones(shape=((96, 55, 55)))
+    mask = K.variable(mask_temp)
+    conv_1_lambda = Lambda(lambda x: x * mask)(conv_1)
+
+    conv_2 = MaxPooling2D((3, 3), strides=(2, 2))(conv_1_lambda)
     conv_2 = crosschannelnormalization(name="convpool_1")(conv_2)
     conv_2 = ZeroPadding2D((2, 2))(conv_2)
     conv_2 = merge([
@@ -167,44 +172,78 @@ def AlexNet(img_shape=(3, 227, 227), n_classes=1000, l2_reg=0.,weights_path=None
             splittensor(axis=channel_index, ratio_split=2, id_split=i)(conv_2)
         ) for i in range(2)], mode='concat', concat_axis=channel_index, name="conv_2")
 
-    conv_3 = MaxPooling2D((3, 3), strides=(2, 2))(conv_2)
+    mask_temp = np.ones(shape=((256, 27, 27)))
+    mask_temp[1] = 0.
+    mask = K.variable(mask_temp)
+    conv_2_lambda = Lambda(lambda x: x * mask)(conv_2)
+
+    conv_3 = MaxPooling2D((3, 3), strides=(2, 2))(conv_2_lambda)
     conv_3 = crosschannelnormalization()(conv_3)
     conv_3 = ZeroPadding2D((1, 1))(conv_3)
     conv_3 = Convolution2D(384, 3, 3, activation='relu', name='conv_3',
                            W_regularizer=l2(l2_reg))(conv_3)
 
-    conv_4 = ZeroPadding2D((1, 1))(conv_3)
+    mask_temp = np.ones(shape=((384, 13, 13)))
+    mask = K.variable(mask_temp)
+    conv_3_lambda = Lambda(lambda x: x * mask)(conv_3)
+
+    conv_4 = ZeroPadding2D((1, 1))(conv_3_lambda)
     conv_4 = merge([
         Convolution2D(192, 3, 3, activation="relu", name='conv_4_'+str(i+1),
                       W_regularizer=l2(l2_reg))(
             splittensor(axis=channel_index, ratio_split=2, id_split=i)(conv_4)
         ) for i in range(2)], mode='concat', concat_axis=channel_index, name="conv_4")
 
-    conv_5 = ZeroPadding2D((1, 1))(conv_4)
+    mask_temp = np.ones(shape=((384, 13, 13)))
+    mask = K.variable(mask_temp)
+    conv_4_lambda = Lambda(lambda x: x * mask)(conv_4)
+
+    conv_5 = ZeroPadding2D((1, 1))(conv_4_lambda)
     conv_5 = merge([
         Convolution2D(128, 3, 3, activation="relu", name='conv_5_'+str(i+1),
                       W_regularizer=l2(l2_reg))(
             splittensor(axis=channel_index, ratio_split=2, id_split=i)(conv_5)
         ) for i in range(2)], mode='concat', concat_axis=channel_index, name="conv_5")
 
-    dense_1 = MaxPooling2D((3, 3), strides=(2, 2), name="convpool_5")(conv_5)
+    mask_temp = np.ones(shape=((256, 13, 13)))
+    mask = K.variable(mask_temp)
+    conv_5_lambda = Lambda(lambda x: x * mask)(conv_5)
+
+    dense_1 = MaxPooling2D((3, 3), strides=(2, 2), name="convpool_5")(conv_5_lambda)
 
     dense_1 = Flatten(name="flatten")(dense_1)
     dense_1 = Dense(4096, activation='relu', name='dense_1',
                     W_regularizer=l2(l2_reg))(dense_1)
-    dense_2 = Dropout(0.5)(dense_1)
+
+    mask_temp = np.ones(shape=((4096,)))
+    mask = K.variable(mask_temp)
+    dense_1_lambda = Lambda(lambda x: x * mask)(dense_1)
+
+    dense_2 = Dropout(0.5)(dense_1_lambda)
     dense_2 = Dense(4096, activation='relu', name='dense_2',
                     W_regularizer=l2(l2_reg))(dense_2)
-    dense_3 = Dropout(0.5)(dense_2)
+
+    mask_temp = np.ones(shape=((4096,)))
+    mask = K.variable(mask_temp)
+    dense_2_lambda = Lambda(lambda x: x * mask)(dense_2)
+
+    dense_3 = Dropout(0.5)(dense_2_lambda)
     if n_classes == 1000:
         dense_3 = Dense(n_classes, name='dense_3',
                         W_regularizer=l2(l2_reg))(dense_3)
+        mask_temp = np.ones(shape=((1000,)))
+        mask = K.variable(mask_temp)
+        dense_3_lambda = Lambda(lambda x: x * mask)(dense_3)
     else:
         # We change the name so when loading the weights_file from a
         # Imagenet pretrained model does not crash
         dense_3 = Dense(n_classes, name='dense_3_new',
                         W_regularizer=l2(l2_reg))(dense_3)
-    prediction = Activation("softmax", name="softmax")(dense_3)
+        mask_temp = np.ones(shape=((1000,)))
+        mask = K.variable(mask_temp)
+        dense_3_lambda = Lambda(lambda x: x * mask)(dense_3)
+
+    prediction = Activation("softmax", name="softmax")(dense_3_lambda)
 
     model = Model(input=inputs, output=prediction)
     if weights_path:
@@ -234,7 +273,7 @@ def pprint_output(out, n_max_synsets=10):
     best_ids = out.argsort()[::-1][:10]
     for u in best_ids:
 	wids.append(str(synsets[corr_inv[u] - 1][1][0]))
-        print('%.2f' % round(100 * out[u], 2) + ' : ' + id_to_words(u)+' '+ str(synsets[corr_inv[u] - 1][1][0]))
+        #print('%.2f' % round(100 * out[u], 2) + ' : ' + id_to_words(u)+' '+ str(synsets[corr_inv[u] - 1][1][0]))
     return wids
 
 #}
@@ -249,11 +288,12 @@ with open('../../data/ILSVRC2014_clsloc_validation_ground_truth.txt') as f:
 		for i in synsets_imagenet_sorted:
 			if i[0] == ind_:
 				temp = i
-		if temp != None:		
+		if temp != None:
 			truth[line_num] = temp
 
 		else:
-			print '##########', ind_
+            		pass
+			#print '##########', ind_
 		line_num += 1
 #}
 
@@ -274,7 +314,7 @@ true_wids = []
 im_list = []
 for i in os.listdir(url_path):
 	if not i.startswith('~') and not i.startswith('.'):
-		print i
+		#print i
 		temp = i.split('.')[0].split('_')[2]
 		true_wids.append(truth[int(temp)][1])
 		im_list.append(url_path+i)
@@ -285,9 +325,9 @@ im = preprocess_image_batch(im_list,img_size=(256,256), crop_size=(227,227), col
 #Function to predict the top 5 accuracy
 def top5accuracy(true, predicted):
 	assert len(true) == len(predicted)
-	result = []	
+	result = []
 	flag  = 0
-	for i in range(len(true)): 	
+	for i in range(len(true)):
 		flag  = 0
 		temp = true[i]
 		for j in predicted[i]:
@@ -298,7 +338,7 @@ def top5accuracy(true, predicted):
 			result.append(1)
 		else:
 			result.append(0)
-	counter = 0.		
+	counter = 0.
 	for i in result:
 		if i == 1:
 		 counter += 1.
@@ -316,7 +356,7 @@ out = model.predict(im,batch_size=64)
 
 predicted_wids = []
 for i in range(len(im_list)):
-	print im_list[i], pprint_output(out[i]), true_wids[i]
+	#print im_list[i], pprint_output(out[i]), true_wids[i]
 	predicted_wids.append(pprint_output(out[i]))
 
 print len(true_wids), len(predicted_wids), len(im_list)
@@ -335,11 +375,11 @@ for layer in model.layers:
 	if result.get(layer.name, None) is None:
 		result[layer.name] = activations[0]
 
-	temp = np.mean(activations[0], axis=0).ravel()	
+	temp = np.mean(activations[0], axis=0).ravel()
     	print layer.name,len(weights),len(activations), activations[0].shape, np.mean(activations[0], axis=0).shape, temp.shape
 	data = np.append(data, temp)
 
-    i += 1 
+    i += 1
 print data.shape
 out_r.append(data)
 #}
@@ -354,6 +394,6 @@ p_num += 1
 tmp = p.replace('/','_')
 with open('../../data/data_alex_'+tmp+'.pkl', 'wb') as f:
 	 pickle.dump(out_r, f)
-#plt.show() 
+#plt.show()
 
 #}
