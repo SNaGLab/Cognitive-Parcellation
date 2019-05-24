@@ -159,9 +159,9 @@ def AlexNet(img_shape=(3, 227, 227), n_classes=1000, l2_reg=0.,weights_path=None
     conv_1 = Convolution2D(96, 11, 11, subsample=(4, 4), activation='relu',
                            name='conv_1', W_regularizer=l2(l2_reg))(inputs)
 
-    mask_temp = np.ones(shape=((96, 55, 55)))
-    mask = K.variable(mask_temp)
-    conv_1_lambda = Lambda(lambda x: x * mask)(conv_1)
+    conv_1_mask = np.ones(shape=((96, 55, 55)))
+    conv_1_mask  = K.variable(conv_1_mask)
+    conv_1_lambda = Lambda(lambda x: x * conv_1_mask)(conv_1)
 
     conv_2 = MaxPooling2D((3, 3), strides=(2, 2))(conv_1_lambda)
     conv_2 = crosschannelnormalization(name="convpool_1")(conv_2)
@@ -172,10 +172,9 @@ def AlexNet(img_shape=(3, 227, 227), n_classes=1000, l2_reg=0.,weights_path=None
             splittensor(axis=channel_index, ratio_split=2, id_split=i)(conv_2)
         ) for i in range(2)], mode='concat', concat_axis=channel_index, name="conv_2")
 
-    mask_temp = np.ones(shape=((256, 27, 27)))
-    mask_temp[1] = 0.
-    mask = K.variable(mask_temp)
-    conv_2_lambda = Lambda(lambda x: x * mask)(conv_2)
+    conv_2_mask = np.ones(shape=((256, 27, 27)))
+    conv_2_mask = K.variable(conv_2_mask)
+    conv_2_lambda = Lambda(lambda x: x * conv_2_mask)(conv_2)
 
     conv_3 = MaxPooling2D((3, 3), strides=(2, 2))(conv_2_lambda)
     conv_3 = crosschannelnormalization()(conv_3)
@@ -183,9 +182,9 @@ def AlexNet(img_shape=(3, 227, 227), n_classes=1000, l2_reg=0.,weights_path=None
     conv_3 = Convolution2D(384, 3, 3, activation='relu', name='conv_3',
                            W_regularizer=l2(l2_reg))(conv_3)
 
-    mask_temp = np.ones(shape=((384, 13, 13)))
-    mask = K.variable(mask_temp)
-    conv_3_lambda = Lambda(lambda x: x * mask)(conv_3)
+    conv_3_mask = np.ones(shape=((384, 13, 13)))
+    conv_3_mask = K.variable(conv_3_mask)
+    conv_3_lambda = Lambda(lambda x: x * conv_3_mask)(conv_3)
 
     conv_4 = ZeroPadding2D((1, 1))(conv_3_lambda)
     conv_4 = merge([
@@ -194,9 +193,9 @@ def AlexNet(img_shape=(3, 227, 227), n_classes=1000, l2_reg=0.,weights_path=None
             splittensor(axis=channel_index, ratio_split=2, id_split=i)(conv_4)
         ) for i in range(2)], mode='concat', concat_axis=channel_index, name="conv_4")
 
-    mask_temp = np.ones(shape=((384, 13, 13)))
-    mask = K.variable(mask_temp)
-    conv_4_lambda = Lambda(lambda x: x * mask)(conv_4)
+    conv_4_mask = np.ones(shape=((384, 13, 13)))
+    conv_4_mask = K.variable(conv_4_mask)
+    conv_4_lambda = Lambda(lambda x: x * conv_4_mask)(conv_4)
 
     conv_5 = ZeroPadding2D((1, 1))(conv_4_lambda)
     conv_5 = merge([
@@ -205,9 +204,9 @@ def AlexNet(img_shape=(3, 227, 227), n_classes=1000, l2_reg=0.,weights_path=None
             splittensor(axis=channel_index, ratio_split=2, id_split=i)(conv_5)
         ) for i in range(2)], mode='concat', concat_axis=channel_index, name="conv_5")
 
-    mask_temp = np.ones(shape=((256, 13, 13)))
-    mask = K.variable(mask_temp)
-    conv_5_lambda = Lambda(lambda x: x * mask)(conv_5)
+    conv_5_mask = np.ones(shape=((256, 13, 13)))
+    conv_5_mask = K.variable(conv_5_mask)
+    conv_5_lambda = Lambda(lambda x: x * conv_5_mask)(conv_5)
 
     dense_1 = MaxPooling2D((3, 3), strides=(2, 2), name="convpool_5")(conv_5_lambda)
 
@@ -215,33 +214,33 @@ def AlexNet(img_shape=(3, 227, 227), n_classes=1000, l2_reg=0.,weights_path=None
     dense_1 = Dense(4096, activation='relu', name='dense_1',
                     W_regularizer=l2(l2_reg))(dense_1)
 
-    mask_temp = np.ones(shape=((4096,)))
-    mask = K.variable(mask_temp)
-    dense_1_lambda = Lambda(lambda x: x * mask)(dense_1)
+    dense_1_mask = np.ones(shape=((4096,)))
+    dense_1_mask = K.variable(dense_1_mask)
+    dense_1_lambda = Lambda(lambda x: x * dense_1_mask)(dense_1)
 
     dense_2 = Dropout(0.5)(dense_1_lambda)
     dense_2 = Dense(4096, activation='relu', name='dense_2',
                     W_regularizer=l2(l2_reg))(dense_2)
 
-    mask_temp = np.ones(shape=((4096,)))
-    mask = K.variable(mask_temp)
-    dense_2_lambda = Lambda(lambda x: x * mask)(dense_2)
+    dense_2_mask = np.ones(shape=((4096,)))
+    dense_2_mask = K.variable(dense_2_mask)
+    dense_2_lambda = Lambda(lambda x: x * dense_2_mask)(dense_2)
 
     dense_3 = Dropout(0.5)(dense_2_lambda)
     if n_classes == 1000:
         dense_3 = Dense(n_classes, name='dense_3',
                         W_regularizer=l2(l2_reg))(dense_3)
-        mask_temp = np.ones(shape=((1000,)))
-        mask = K.variable(mask_temp)
-        dense_3_lambda = Lambda(lambda x: x * mask)(dense_3)
+        dense_3_mask = np.ones(shape=((1000,)))
+        dense_3_mask = K.variable(dense_3_mask)
+        dense_3_lambda = Lambda(lambda x: x * dense_3_mask)(dense_3)
     else:
         # We change the name so when loading the weights_file from a
         # Imagenet pretrained model does not crash
         dense_3 = Dense(n_classes, name='dense_3_new',
                         W_regularizer=l2(l2_reg))(dense_3)
-        mask_temp = np.ones(shape=((1000,)))
-        mask = K.variable(mask_temp)
-        dense_3_lambda = Lambda(lambda x: x * mask)(dense_3)
+        dense_3_mask = np.ones(shape=((1000,)))
+        dense_3_mask = K.variable(dense_3_mask)
+        dense_3_lambda = Lambda(lambda x: x * dense_3_mask)(dense_3)
 
     prediction = Activation("softmax", name="softmax")(dense_3_lambda)
 
