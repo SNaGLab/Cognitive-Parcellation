@@ -391,7 +391,7 @@ plt.savefig('../../results/histograms/'+p+'_hist_alex.png')
 p_num += 1
 
 tmp = p.replace('/','_')
-with open('../../data/data_alex_'+tmp+'.pkl', 'wb') as f:
+with open('../../data/pkl/data_alex_'+tmp+'.pkl', 'wb') as f:
 	 pickle.dump(out_r, f)
 #plt.show()
 
