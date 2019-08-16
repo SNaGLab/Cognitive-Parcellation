@@ -1,5 +1,5 @@
-#To hide warnings export PYTHONWARNINGS="ignore"
-#Imports
+#Python 2.7.15 - To hide warnings export PYTHONWARNINGS="ignore"
+#Imports{
 import numpy as np
 import os
 import sys
@@ -7,9 +7,9 @@ os.environ['KERAS_BACKEND'] = 'theano'
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import keras
 from keras.models import Sequential
-from keras.layers import Dense, Activation, Dropout, Flatten,Conv2D, MaxPooling2D, Input, ZeroPadding2D,merge,Lambda,Flatten
+from keras.layers import Dense, Activation, Dropout, Flatten, MaxPooling2D, Input, ZeroPadding2D,merge,Lambda
 from keras.layers.normalization import BatchNormalization
-from keras.layers.convolutional import Convolution2D, MaxPooling2D, ZeroPadding2D
+from keras.layers.convolutional import Convolution2D
 from keras.models import Model
 from keras.utils.layer_utils import convert_all_kernels_in_model
 from keras.optimizers import SGD
@@ -17,16 +17,15 @@ from scipy.misc import imread
 from scipy.misc import imresize
 from keras import backend as K
 from keras.engine import Layer
-from keras.layers.core import Lambda
 import cPickle as pickle
 from keras.utils.vis_utils import plot_model
 import matplotlib
 import matplotlib.pyplot as plt
-from keras.layers.core import  Lambda
 from keras.regularizers import l2
 from os.path import dirname
 from os.path import join
 from scipy.io import loadmat
+#}
 
 #Code snippet needed to read activation values from each layer of the pre-trained artificial neural networks
 def get_activations(model, layer, X_batch):
@@ -48,8 +47,8 @@ def preprocess_image_batch(image_paths, img_size=None, crop_size=None, color_mod
 
     for im_path in image_paths:
         img = imread(im_path, mode='RGB')
-	#print im_path
-	#print img.shape
+        #print im_path
+        #print img.shape
         if img_size:
             img = imresize(img, img_size)
 
@@ -72,7 +71,7 @@ def preprocess_image_batch(image_paths, img_size=None, crop_size=None, color_mod
     try:
         img_batch = np.stack(img_list, axis=0)
     except:
-	print im_path
+        print im_path
         raise ValueError('when img_size and crop_size are None, images'
                 ' in image_paths must have the same shapes.')
 
@@ -250,8 +249,6 @@ def AlexNet(img_shape=(3, 227, 227), n_classes=1000, l2_reg=0.,weights_path=None
 
     return model
 
-
-
 #Load the details of all the 1000 classes and the function to conver the synset id to words{
 meta_clsloc_file = join(dirname(__file__), '../../data', 'meta_clsloc.mat')
 synsets = loadmat(meta_clsloc_file)['synsets'][0]
@@ -271,7 +268,7 @@ def pprint_output(out, n_max_synsets=10):
     wids = []
     best_ids = out.argsort()[::-1][:10]
     for u in best_ids:
-	wids.append(str(synsets[corr_inv[u] - 1][1][0]))
+        wids.append(str(synsets[corr_inv[u] - 1][1][0]))
         #print('%.2f' % round(100 * out[u], 2) + ' : ' + id_to_words(u)+' '+ str(synsets[corr_inv[u] - 1][1][0]))
     return wids
 
@@ -286,39 +283,13 @@ with open('../../data/ILSVRC2014_clsloc_validation_ground_truth.txt') as f:
 		temp  = None
 		for i in synsets_imagenet_sorted:
 			if i[0] == ind_:
-				temp = i
-		if temp != None:
-			truth[line_num] = temp
-
-		else:
-            		pass
-			#print '##########', ind_
+                		temp = i
+	    	if temp != None:
+	        	truth[line_num] = temp
+	    	else:
+	        	pass
+	        	#print '##########', ind_	
 		line_num += 1
-#}
-
-# Loading the folder to be procesed from command line{
-p = sys.argv[1]
-tmp = p.replace('/','_')
-print tmp
-
-
-out_r = []
-p_num = 1
-url_path = '../../data/'+p+'/'
-#}
-
-
-# Prepare the image list and pre-process them{
-true_wids = []
-im_list = []
-for i in os.listdir(url_path):
-	if not i.startswith('~') and not i.startswith('.'):
-		#print i
-		temp = i.split('.')[0].split('_')[2]
-		true_wids.append(truth[int(temp)][1])
-		im_list.append(url_path+i)
-
-im = preprocess_image_batch(im_list,img_size=(256,256), crop_size=(227,227), color_mode="rgb")
 #}
 
 #Function to predict the top 5 accuracy
@@ -345,54 +316,194 @@ def top5accuracy(true, predicted):
 	print len(np.where(np.asarray(result) == 1)[0])
 	return error
 
+# Loading the folder to be procesed from command line{
+p = sys.argv[1]
+tmp = p.replace('/','_')
+print tmp
+out_r = []
+p_num = 1
+url_path = '../../data/'+p+'/'
+#}
+
+# Prepare the image list and pre-process them{
+im_list = []
+for i in os.listdir(url_path):
+    if not i.startswith('~') and not i.startswith('.'):
+        #print i
+        temp = i.split('.')[0].split('_')[2]
+        im_list.append(url_path+i)
+            
+from sklearn.model_selection import train_test_split
+X_train, X_test = train_test_split(im_list, test_size=0.1,random_state=7,shuffle=True)
+
+from sklearn.model_selection import KFold
+kf= KFold(n_splits=4,shuffle=True,random_state=11)
+
+#}
+
 # Model parmeters and running the model from the loaded weights{
 sgd = SGD(lr=0.1, decay=1e-6, momentum=0.9, nesterov=True)
 model = AlexNet(weights_path="../../data/weights/alexnet_weights.h5")
-model.compile(optimizer=sgd, loss='mse')
+model.compile(optimizer=sgd, loss='mse')    
 #print model.summary()
 #plot_model(model, to_file='model_plot.png', show_shapes=True, show_layer_names=True)
-out = model.predict(im,batch_size=64)
 
+j = 1
+print('Performing cross-validation')
+for train_index, valid_index in kf.split(X_train):
+    #if j==2:
+    #   break
+    print 'Fold: ',j
+    X_train_cv = [X_train[i] for i in train_index]
+    X_valid_cv = [X_train[1] for i in valid_index]
+    j += 1
+        
+    #Training data
+    im_train = preprocess_image_batch(X_train_cv,img_size=(256,256), crop_size=(227,227), color_mode="rgb")
+    out = model.predict(im_train,batch_size=64)
+
+
+    # Prepare the image list and pre-process them{
+    true_wids = []
+    for i in X_train_cv:
+        temp = i.split('/')[4]
+        temp = temp.split('.')[0].split('_')[2]
+        true_wids.append(truth[int(temp)][1])
+
+    predicted_wids = []
+    for i in range(len(im_train)):
+        #print im_list[i], pprint_output(out[i]), true_wids[i]
+        predicted_wids.append(pprint_output(out[i]))
+    
+    print len(true_wids), len(predicted_wids), len(im_train)
+    print top5accuracy(true_wids, predicted_wids)
+
+    #}
+    
+    # Code snippet to get the activation values and save it into a variable{
+    data = np.array([])
+    i = 0
+    result ={}
+    for layer in model.layers:
+        weights = layer.get_weights()
+        if len(weights) > 0:
+            activations = get_activations(model,i,im_train)
+            if result.get(layer.name, None) is None:
+                result[layer.name] = activations[0]
+    
+            temp = np.mean(activations[0], axis=0).ravel()
+            print layer.name,len(weights),len(activations), activations[0].shape, np.mean(activations[0], axis=0).shape, temp.shape
+            data = np.append(data, temp)
+    
+        i += 1
+    print data.shape
+    out_r.append(data)
+    
+    tmp = p+'_fold_'+str(j)+'_train'
+    with open('../../data/pkl/data_alex_'+tmp+'.pkl', 'wb') as f:
+         pickle.dump(out_r, f)
+         
+         
+    #Validation data     
+    im_valid = preprocess_image_batch(X_valid_cv,img_size=(256,256), crop_size=(227,227), color_mode="rgb")
+    out = model.predict(im_valid,batch_size=64)
+
+    # Prepare the image list and pre-process them{
+    true_wids = []
+    for i in X_valid_cv:
+        temp = i.split('/')[4]
+        temp = temp.split('.')[0].split('_')[2]
+        true_wids.append(truth[int(temp)][1])
+        
+    predicted_wids = []
+    for i in range(len(im_valid)):
+        #print im_list[i], pprint_output(out[i]), true_wids[i]
+        predicted_wids.append(pprint_output(out[i]))
+    
+    print len(true_wids), len(predicted_wids), len(im_valid)
+    print top5accuracy(true_wids, predicted_wids)
+
+    #}
+    
+    # Code snippet to get the activation values and save it into a variable{
+    data = np.array([])
+    i = 0
+    result ={}
+    for layer in model.layers:
+        weights = layer.get_weights()
+        if len(weights) > 0:
+            activations = get_activations(model,i,im_valid)
+            if result.get(layer.name, None) is None:
+                result[layer.name] = activations[0]
+    
+            temp = np.mean(activations[0], axis=0).ravel()
+            print layer.name,len(weights),len(activations), activations[0].shape, np.mean(activations[0], axis=0).shape, temp.shape
+            data = np.append(data, temp)
+    
+        i += 1
+    print data.shape
+    out_r.append(data)
+    
+    tmp = p+'_fold_'+str(j)+'_valid'
+    with open('../../data/pkl/data_alex_'+tmp+'.pkl', 'wb') as f:
+         pickle.dump(out_r, f)
+
+    #}
+
+
+#Test data     
+im_test = preprocess_image_batch(X_test,img_size=(256,256), crop_size=(227,227), color_mode="rgb")
+out = model.predict(im_test,batch_size=64)
+
+
+# Prepare the image list and pre-process them{
+true_wids = []
+for i in X_test:
+    temp = i.split('/')[4]
+    temp = temp.split('.')[0].split('_')[2]
+    true_wids.append(truth[int(temp)][1])
+    
 predicted_wids = []
-for i in range(len(im_list)):
-	#print im_list[i], pprint_output(out[i]), true_wids[i]
-	predicted_wids.append(pprint_output(out[i]))
+for i in range(len(im_test)):
+    #print im_list[i], pprint_output(out[i]), true_wids[i]
+    predicted_wids.append(pprint_output(out[i]))
 
-print len(true_wids), len(predicted_wids), len(im_list)
+print len(true_wids), len(predicted_wids), len(im_test)
 print top5accuracy(true_wids, predicted_wids)
 
 #}
 
-# Code snippet to get the activation values and save it into teh variable{
+# Code snippet to get the activation values and save it into a variable{
 data = np.array([])
 i = 0
 result ={}
 for layer in model.layers:
     weights = layer.get_weights()
     if len(weights) > 0:
-	activations = get_activations(model,i,im)
-	if result.get(layer.name, None) is None:
-		result[layer.name] = activations[0]
+        activations = get_activations(model,i,im_test)
+        if result.get(layer.name, None) is None:
+            result[layer.name] = activations[0]
 
-	temp = np.mean(activations[0], axis=0).ravel()
-    	print layer.name,len(weights),len(activations), activations[0].shape, np.mean(activations[0], axis=0).shape, temp.shape
-	data = np.append(data, temp)
+        temp = np.mean(activations[0], axis=0).ravel()
+        print layer.name,len(weights),len(activations), activations[0].shape, np.mean(activations[0], axis=0).shape, temp.shape
+        data = np.append(data, temp)
 
     i += 1
 print data.shape
 out_r.append(data)
+
+tmp = p+'_test'
+with open('../../data/pkl/data_alex_'+tmp+'.pkl', 'wb') as f:
+     pickle.dump(out_r, f)
+
 #}
 
+'''
 #Code Snippet for any plots if needed{
-plt.figure(p_num)
+plt.figure(1)
 plt.hist(data,bins='auto',color = 'blue')
 plt.title('Histogram of '+p+ ' class')
 plt.savefig('../../results/histograms/'+p+'_hist_alex.png')
-p_num += 1
-
-tmp = p.replace('/','_')
-with open('../../data/pkl/data_alex_'+tmp+'.pkl', 'wb') as f:
-	 pickle.dump(out_r, f)
 #plt.show()
-
 #}
+'''
