@@ -1,5 +1,5 @@
 #To hide warnings export PYTHONWARNINGS="ignore"
-#Imports
+#Imports{
 import numpy as np
 import sys
 import os
@@ -26,6 +26,8 @@ from keras.regularizers import l2
 from os.path import dirname
 from os.path import join
 from scipy.io import loadmat
+#}
+
 
 #Code snippet needed to read activation values from each layer of the pre-trained artificial neural networks
 def get_activations(model, layer, X_batch):
@@ -47,8 +49,8 @@ def preprocess_image_batch(image_paths, img_size=None, crop_size=None, color_mod
 
     for im_path in image_paths:
         img = imread(im_path, mode='RGB')
-	#print im_path
-	#print img.shape
+        #print im_path
+        #print img.shape
         if img_size:
             img = imresize(img, img_size)
 
@@ -71,7 +73,7 @@ def preprocess_image_batch(image_paths, img_size=None, crop_size=None, color_mod
     try:
         img_batch = np.stack(img_list, axis=0)
     except:
-	print im_path
+        print im_path
         raise ValueError('when img_size and crop_size are None, images'
                 ' in image_paths must have the same shapes.')
 
@@ -270,8 +272,8 @@ def pprint_output(out, n_max_synsets=10):
     wids = []
     best_ids = out.argsort()[::-1][:10]
     for u in best_ids:
-	wids.append(str(synsets[corr_inv[u] - 1][1][0]))
-        #print('%.2f' % round(100 * out[u], 2) + ' : ' + id_to_words(u)+' '+ str(synsets[corr_inv[u] - 1][1][0]))
+        wids.append(str(synsets[corr_inv[u] - 1][1][0]))
+    #print('%.2f' % round(100 * out[u], 2) + ' : ' + id_to_words(u)+' '+ str(synsets[corr_inv[u] - 1][1][0]))
     return wids
 
 #}
@@ -288,11 +290,11 @@ with open('../../data/ILSVRC2014_clsloc_validation_ground_truth.txt') as f:
 				temp = i
 		if temp != None:
 			truth[line_num] = temp
-
 		else:
-            		pass
-			#print '##########', ind_
-		line_num += 1
+            #print '##########', ind_
+            pass
+            
+        line_num += 1
 #}
 
 # Loading the folder to be procesed from command line{
@@ -339,7 +341,7 @@ def top5accuracy(true, predicted):
 	counter = 0.
 	for i in result:
 		if i == 1:
-		 counter += 1.
+            counter += 1.
 	error = 1.0 - counter/float(len(result))
 	print len(np.where(np.asarray(result) == 1)[0])
 	return error
@@ -362,21 +364,19 @@ print top5accuracy(true_wids, predicted_wids)
 
 #}
 
-# Code snippet to get the activation values and save it into teh variable{
+# Code snippet to get the activation values and save it into the variable{
 data = np.array([])
 i = 0
 result ={}
 for layer in model.layers:
     weights = layer.get_weights()
     if len(weights) > 0:
-	activations = get_activations(model,i,im)
-	if result.get(layer.name, None) is None:
-		result[layer.name] = activations[0]
-
-	temp = np.mean(activations[0], axis=0).ravel()
-    	print layer.name,len(weights),len(activations), activations[0].shape, np.mean(activations[0], axis=0).shape, temp.shape
-	data = np.append(data, temp)
-
+        activations = get_activations(model,i,im)
+        if result.get(layer.name, None) is None:
+        	result[layer.name] = activations[0]
+            temp = np.mean(activations[0], axis=0).ravel()
+            print layer.name,len(weights),len(activations), activations[0].shape, np.mean(activations[0], axis=0).shape, temp.shape
+            data = np.append(data, temp)
     i += 1
 print data.shape
 out_r.append(data)
