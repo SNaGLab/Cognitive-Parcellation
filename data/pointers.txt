@@ -1,0 +1,24 @@
+from keras.models import Model
+
+model = ...  # include here your original model
+
+layer_name = 'my_layer'
+intermediate_layer_model = Model(inputs=model.input,
+                                 outputs=model.get_layer(layer_name).output)
+intermediate_output = intermediate_layer_model.predict(data)
+
+Reviewer 1:
+
+This paper proposes clustering voxel response profiles (across multiple conditions) using a mixture of Student's-t distributions. Clustering functional properties is not particularly novel - the potential novelty here is the use of an explicit mixture model (rather than a soft clustering that assumes there are distinct latent classes) and the use of t distributions, but it's unclear that either of these will have a substantial impact, and the paper does not compare to the common approaches (e.g. k-means, agglomerative clustering). The interpretation of the clustering seems questionable, since many of the "strongly associated" voxels don't actually fall close to the center of their distributions (Fig 3). It is not clear why "isolating brain areas that are common to a condition of interest and control condition" would be a useful goal, since in essentially all experiments the control is designed such that regions responding to both the experimental condition and the control are not of interest.
+
+ 
+
+Reviewer 2:
+
+I can follow the technical part (EM in a simple mixture model) but the application to data and why this generative model would be a useful description of regression weights is not clear to me.  Also the procedure going from the latent causes back to structured bold activity associated with specific cognitive processes is ad hoc and poorly explained.
+
+ 
+
+Reviewer 3:
+
+This is a quite interesting exercise - but the underlying generative model is simply not appropriate to the data. The tuning curve is estimated in a 2-dimensional space (activity to control and language task), which is way to low dimensional to cluster voxels into groups. I find it hard to believe that the clusters depicted in Figure 3 represent natural grouping. Maybe the algorithm would be interesting using data sets with 10+ conditions - however, then the challenges of estimating multivariate t-distributions would need to be tackled.
