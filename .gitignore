@@ -1,3 +1,4 @@
 /data/weights/*
 /code/data/.ipynb_checkpoints/*
 /code/models/.ipynb_checkpoints/*
+/results/scree/*
