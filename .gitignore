@@ -4,3 +4,7 @@
 /results/scree/*
 /data/pkl/*
 code/experiments/.ipynb_checkpoints/*
+results
+data/pkl/
+data/pkl.bak/
+
