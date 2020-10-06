@@ -10,4 +10,5 @@ data/pkl.bak/
 data/pkl_mobile/
 data/pkl_resnet/
 data/pkl_vgg16/
+data/pkl_alex/
 code/experiments/dask-worker-space/
