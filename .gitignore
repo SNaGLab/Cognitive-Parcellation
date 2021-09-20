@@ -12,6 +12,7 @@ data/pkl_resnet/
 data/pkl_vgg16/
 data/pkl_alex/
 code/experiments/dask-worker-space/
+data/AL*
 data/T1A/
 data/T1B/
 data/T2A/
