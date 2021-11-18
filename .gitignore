@@ -6,6 +6,7 @@
 code/experiments/.ipynb_checkpoints/*
 results
 data/pkl/
+data/pkl_alex/
 data/pkl.bak/
 data/pkl_mobile/
 data/pkl_resnet/
