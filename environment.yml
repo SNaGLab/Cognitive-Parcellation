@@ -1,9 +1,6 @@
-name: p37
+name: my_env_1
 channels:
   - defaults
 dependencies:
   - python=3.7
-  - cudatoolkit=10.0
-  - pytorch==1.2.0
-  - torchvision==0.4.0
-prefix: /home/ec2-user/anaconda3/envs/p37
+  - pip=19.1.1

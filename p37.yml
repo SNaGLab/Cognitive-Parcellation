@@ -6,39 +6,10 @@ dependencies:
   - _libgcc_mutex=0.1=main
   - blas=1.0=mkl
   - ca-certificates=2020.7.22=0
-  - cffi=1.14.2=py37he30daa8_0
-  - cudatoolkit=10.0.130=0
-  - freetype=2.10.2=h5ab3b9f_0
-  - intel-openmp=2020.2=254
-  - jpeg=9b=h024ee3a_2
-  - lcms2=2.11=h396b838_0
-  - ld_impl_linux-64=2.33.1=h53a641e_7
-  - libedit=3.1.20191231=h14c3975_1
-  - libffi=3.3=he6710b0_2
-  - libgcc-ng=9.1.0=hdf63c60_0
-  - libpng=1.6.37=hbc83047_0
-  - libstdcxx-ng=9.1.0=hdf63c60_0
-  - libtiff=4.1.0=h2733197_1
-  - lz4-c=1.9.2=he6710b0_1
-  - mkl=2020.2=256
-  - mkl-service=2.3.0=py37he904b0f_0
-  - mkl_fft=1.1.0=py37h23d657b_0
-  - mkl_random=1.1.1=py37h0573a6f_0
-  - ncurses=6.2=he6710b0_1
-  - ninja=1.10.0=py37hfd86e86_0
   - olefile=0.46=py37_0
-  - openssl=1.1.1g=h7b6447c_0
   - pycparser=2.20=py_2
-  - python=3.7.7=hcff3b4d_5
-  - pytorch=1.2.0=py3.7_cuda10.0.130_cudnn7.6.2_0
-  - readline=8.0=h7b6447c_0
   - setuptools=49.6.0=py37_0
-  - sqlite=3.33.0=h62c20be_0
-  - tk=8.6.10=hbc83047_0
   - wheel=0.35.1=py_0
-  - xz=5.2.5=h7b6447c_0
-  - zlib=1.2.11=h7b6447c_3
-  - zstd=1.4.5=h9ceee32_0
   - pip:
     - absl-py==0.7.1
     - altair==4.1.0
@@ -188,4 +159,32 @@ dependencies:
     - werkzeug==0.15.2
     - widgetsnbextension==3.5.1
     - zipp==3.4.1
-prefix: /home/ec2-user/anaconda3/envs/p37
+    - lcms2==2.11=h396b838_0
+    - mkl_fft==1.1.0=py37h23d657b_0
+    - cffi==1.14.2=py37he30daa8_0
+    - openssl==1.1.1g=h7b6447c_0
+    - libstdcxx-ng==9.1.0=hdf63c60_0
+    - intel-openmp==2020.2=254
+    - mkl-service==2.3.0=py37he904b0f_0
+    - sqlite==3.33.0=h62c20be_0
+    - libedit==3.1.20191231=h14c3975_1
+    - libpng==1.6.37=hbc83047_0
+    - lz4-c==1.9.2=he6710b0_1
+    - cudatoolkit==10.0.130=0
+    - ncurses==6.2=he6710b0_1
+    - mkl_random==1.1.1=py37h0573a6f_0
+    - xz==5.2.5=h7b6447c_0
+    - libtiff==4.1.0=h2733197_1
+    - readline==8.0=h7b6447c_0
+    - zlib==1.2.11=h7b6447c_3
+    - tk==8.6.10=hbc83047_0
+    - zstd==1.4.5=h9ceee32_0
+    - mkl==2020.2=256
+    - python==3.7.7=hcff3b4d_5
+    - ld_impl_linux-64==2.33.1=h53a641e_7
+    - libffi==3.3=he6710b0_2
+    - freetype==2.10.2=h5ab3b9f_0
+    - libgcc-ng==9.1.0=hdf63c60_0
+    - jpeg==9b=h024ee3a_2
+    - ninja==1.10.0=py37hfd86e86_0
+    - pytorch==1.2.0=py3.7_cuda10.0.130_cudnn7.6.2_0
