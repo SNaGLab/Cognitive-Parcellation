@@ -10,3 +10,9 @@ ipython kernel install --user --name=my_env_1
 conda info --envs
 
 ```
+
+To remove an env
+```
+conda-env remove -n my_env_1
+
+```
