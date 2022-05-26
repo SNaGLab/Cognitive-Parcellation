@@ -125,7 +125,7 @@ subprocess32==3.5.4
 -e git+https://github.com/SumnerLab/talkback-lambda.git@eb1b38805612b2b4d874708122d77319dc63219f#egg=talkback&subdirectory=tbproject
 tensorboard==1.13.1
 tensorboardX==2.1
-tensorflow==1.13.1
+tensorflow==2.7.2
 tensorflow-estimator==1.13.0
 termcolor==1.1.0
 terminado==0.8.3
