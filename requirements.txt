@@ -143,7 +143,7 @@ traitlets==4.3.3
 transformers @ git+https://github.com/huggingface/transformers.git@26212c14e5570aff40b90c11495d97dada4272fb
 typing-extensions==3.7.4.3
 tzlocal==2.1
-urllib3==1.26.4
+urllib3==1.26.5
 validators==0.18.0
 wandb==0.9.5
 watchdog==0.10.3
