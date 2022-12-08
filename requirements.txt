@@ -12,7 +12,7 @@ blinker==1.4
 boto3==1.10.45
 botocore==1.13.45
 cachetools==4.1.1
-certifi==2020.12.5
+certifi==2022.12.7
 cffi @ file:///tmp/build/80754af9/cffi_1598370813909/work
 chardet==4.0.0
 click==7.1.2
