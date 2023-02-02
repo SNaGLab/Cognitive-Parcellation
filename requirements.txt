@@ -149,6 +149,6 @@ wandb==0.9.5
 watchdog==0.10.3
 wcwidth==0.2.5
 webencodings==0.5.1
-Werkzeug==0.15.2
+Werkzeug==0.15.5
 widgetsnbextension==3.5.1
 zipp==3.4.1
